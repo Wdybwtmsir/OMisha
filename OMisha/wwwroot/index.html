@@ -1,172 +1,363 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
     <title>Крестики-нолики онлайн</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
             text-align: center;
-            margin-top: 30px;
+            color: #333;
+            margin-top: 0;
+        }
+
+        .join-panel {
+            text-align: center;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+            .join-panel input {
+                padding: 10px;
+                font-size: 16px;
+                width: 200px;
+                margin: 10px;
+                border: 2px solid #ddd;
+                border-radius: 5px;
+            }
+
+            .join-panel button {
+                padding: 10px 20px;
+                font-size: 16px;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+                .join-panel button:hover {
+                    background: #5a67d8;
+                }
+
+        .game-area {
+            display: none;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            background: #f0f0f0;
         }
 
         .board {
             display: grid;
             grid-template-columns: repeat(3, 100px);
-            gap: 5px;
+            gap: 10px;
             justify-content: center;
-            margin: 20px auto;
+            margin: 20px 0;
         }
 
         .cell {
             width: 100px;
             height: 100px;
-            background: #eee;
-            border: 1px solid #ccc;
-            font-size: 48px;
+            background: #f8f9fa;
+            border: 3px solid #dee2e6;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
+            .cell:hover:not(.disabled) {
+                background: #e9ecef;
+                transform: scale(1.02);
+            }
+
             .cell.X {
-                color: red;
+                color: #dc3545;
             }
 
             .cell.O {
-                color: blue;
+                color: #28a745;
+            }
+
+            .cell.disabled {
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+            button:hover {
+                background: #0056b3;
             }
 
         .chat {
-            width: 300px;
-            margin: 20px auto;
-            border: 1px solid #aaa;
-            padding: 10px;
+            margin-top: 20px;
+            border-top: 2px solid #dee2e6;
+            padding-top: 20px;
         }
 
         .chat-messages {
             height: 200px;
             overflow-y: auto;
-            border-bottom: 1px solid #ccc;
-            margin-bottom: 5px;
-            text-align: left;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
         }
 
-        input, button {
+        .chat-message {
             padding: 5px;
-            margin: 3px;
+            margin: 5px 0;
+            border-radius: 5px;
         }
 
-        .status {
-            font-weight: bold;
+            .chat-message.own {
+                background: #d1ecf1;
+                text-align: right;
+            }
+
+            .chat-message.other {
+                background: #e2e3e5;
+                text-align: left;
+            }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+            .chat-input-area input {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
+            }
+
+        .info {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 </head>
 <body>
-    <h1>Крестики-нолики</h1>
+    <div class="container">
+        <h1>🎮 Крестики-нолики</h1>
 
-    <div>
-        <label>ID комнаты: <input type="text" id="roomIdInput" placeholder="myroom123"></label>
-        <button id="joinBtn">Создать / Войти</button>
-    </div>
+        <div id="joinPanel" class="join-panel">
+            <h3>Войти в игру</h3>
+            <input type="text" id="roomId" placeholder="ID комнаты" value="game123">
+            <button onclick="joinGame()">🎯 Присоединиться</button>
+            <div class="info">Введите одинаковый ID комнаты с другом</div>
+        </div>
 
-    <div id="gameArea" style="display:none;">
-        <div id="status" class="status"></div>
-        <div id="board" class="board"></div>
-        <button id="resetBtn">Сбросить игру</button>
+        <div id="gameArea" class="game-area">
+            <div id="status" class="status">⏳ Ожидание игроков...</div>
+            <div id="board" class="board"></div>
+            <div style="text-align: center;">
+                <button onclick="resetGame()">🔄 Сбросить игру</button>
+            </div>
 
-        <div class="chat">
-            <div id="chatMessages" class="chat-messages"></div>
-            <input type="text" id="chatInput" placeholder="Ваше сообщение...">
-            <button id="sendChatBtn">Отправить</button>
+            <div class="chat">
+                <h3>💬 Чат</h3>
+                <div id="chatMessages" class="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Ваше сообщение..." onkeypress="if(event.key==='Enter') sendChat()">
+                    <button onclick="sendChat()">📨 Отправить</button>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script>
-        let connection;
-        let currentRoomId = "";
-        let playerSymbol = null; 
+        let connection = null;
+        let currentRoomId = null;
+        let mySymbol = null;
+        let myConnectionId = null;
+        let myTurn = false;
         let gameActive = false;
+        let boardData = Array(9).fill(' ');
 
-        const joinBtn = document.getElementById("joinBtn");
-        const roomIdInput = document.getElementById("roomIdInput");
-        const gameArea = document.getElementById("gameArea");
-        const statusDiv = document.getElementById("status");
-        const boardDiv = document.getElementById("board");
-        const resetBtn = document.getElementById("resetBtn");
-        const chatInput = document.getElementById("chatInput");
-        const sendChatBtn = document.getElementById("sendChatBtn");
-        const chatMessagesDiv = document.getElementById("chatMessages");
+        async function joinGame() {
+            const roomId = document.getElementById('roomId').value.trim();
+            if (!roomId) {
+                alert('Введите ID комнаты');
+                return;
+            }
 
-        joinBtn.onclick = async () => {
-            const roomId = roomIdInput.value.trim() || "room_" + Math.floor(Math.random() * 1000);
             currentRoomId = roomId;
 
             connection = new signalR.HubConnectionBuilder()
-                .withUrl("/gameHub")
+                .withUrl('/gameHub')
+                .withAutomaticReconnect()
                 .build();
 
-            connection.on("GameStarted", (msg) => {
-                gameArea.style.display = "block";
-                statusDiv.innerText = msg;
-                gameActive = true;
-            });
-
-            connection.on("BoardUpdate", (board) => renderBoard(board));
-            connection.on("TurnChanged", (symbol) => {
-                statusDiv.innerText = `Ход игрока: ${symbol}`;
-                playerSymbol = symbol;
-            });
-            connection.on("GameOver", (msg) => {
-                statusDiv.innerText = msg;
-                gameActive = false;
-            });
-            connection.on("GameReset", () => {
-                statusDiv.innerText = "Игра сброшена!";
-                gameActive = true;
-            });
-            connection.on("ReceiveChatMessage", (name, msg) => {
-                const div = document.createElement("div");
-                div.innerText = `${name}: ${msg}`;
-                chatMessagesDiv.appendChild(div);
-                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-            });
-            connection.on("GameError", (err) => alert(err));
-
-            await connection.start();
-            const result = await connection.invoke("JoinRoom", roomId);
-            if (result === "full") alert("Комната полна");
-        };
-
-        function renderBoard(board) {
-            boardDiv.innerHTML = "";
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement("div");
-                cell.className = "cell " + (board[i] !== ' ' ? (board[i] === 'X' ? 'X' : 'O') : "");
-                cell.innerText = board[i];
-                if (gameActive && board[i] === ' ' && connection) {
-                    cell.style.cursor = "pointer";
-                    cell.onclick = () => {
-                        if (playerSymbol)
-                            connection.invoke("MakeMove", currentRoomId, i, playerSymbol);
-                    };
+           
+            connection.on('PlayerJoined', (playerCount) => {
+                document.getElementById('status').innerHTML = `👥 Игроков в комнате: ${playerCount}/2`;
+                if (playerCount === 2) {
+                    document.getElementById('status').innerHTML = '🎉 Игра начинается! 🎉';
                 }
+            });
+
+            connection.on('GameStart', (symbols) => {
+                gameActive = true;
+                document.getElementById('status').innerHTML = `🎮 Игра началась! Вы играете за ${mySymbol}`;
+            });
+
+            connection.on('BoardUpdate', (board) => {
+                boardData = board;
+                renderBoard();
+            });
+
+            connection.on('SetTurn', (playerId) => {
+                myTurn = (playerId === myConnectionId);
+                if (gameActive) {
+                    const statusText = myTurn ? '✅ Ваш ход!' : '⏳ Ход соперника...';
+                    document.getElementById('status').innerHTML = `${statusText} Вы играете за ${mySymbol}`;
+                }
+            });
+
+            connection.on('GameEnd', (message) => {
+                gameActive = false;
+                myTurn = false;
+                document.getElementById('status').innerHTML = `🏆 ${message} 🏆`;
+            });
+
+            connection.on('GameReset', () => {
+                gameActive = true;
+                document.getElementById('status').innerHTML = `🔄 Игра сброшена! Вы играете за ${mySymbol}`;
+            });
+
+            connection.on('NewMessage', (connectionId, message) => {
+                addChatMessage(connectionId === myConnectionId, message);
+            });
+
+            connection.onclose(() => {
+                alert('Соединение потеряно');
+                document.getElementById('joinPanel').style.display = 'block';
+                document.getElementById('gameArea').style.display = 'none';
+            });
+
+            try {
+                await connection.start();
+                myConnectionId = connection.connectionId;
+
+                const result = await connection.invoke('JoinRoom', roomId);
+
+                if (result && !result.success) {
+                    alert(result.error);
+                    return;
+                }
+
+                mySymbol = result.symbol;
+                document.getElementById('joinPanel').style.display = 'none';
+                document.getElementById('gameArea').style.display = 'block';
+                document.getElementById('status').innerHTML = `🟢 Подключено! Вы играете за ${mySymbol}. Ожидаем соперника...`;
+
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка подключения: ' + err);
+            }
+        }
+
+        function renderBoard() {
+            const boardDiv = document.getElementById('board');
+            boardDiv.innerHTML = '';
+
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = `cell ${boardData[i] !== ' ' ? boardData[i] : ''}`;
+                cell.textContent = boardData[i] !== ' ' ? boardData[i] : '';
+
+                if (gameActive && myTurn && boardData[i] === ' ') {
+                    cell.style.cursor = 'pointer';
+                    cell.onclick = () => makeMove(i);
+                } else {
+                    cell.classList.add('disabled');
+                }
+
                 boardDiv.appendChild(cell);
             }
         }
 
-        resetBtn.onclick = () => {
-            if (connection) connection.invoke("ResetGame", currentRoomId);
-        };
+        async function makeMove(position) {
+            if (!gameActive || !myTurn) return;
 
-        sendChatBtn.onclick = () => {
-            const msg = chatInput.value.trim();
-            if (msg && connection) {
-                connection.invoke("SendChatMessage", currentRoomId, "Игрок", msg);
-                chatInput.value = "";
+            try {
+                await connection.invoke('MakeMove', currentRoomId, position);
+            } catch (err) {
+                console.error('Move error:', err);
             }
-        };
+        }
+
+        async function resetGame() {
+            if (connection) {
+                await connection.invoke('ResetGame', currentRoomId);
+            }
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (message && connection) {
+                await connection.invoke('SendChat', currentRoomId, message);
+                input.value = '';
+            }
+        }
+
+        function addChatMessage(isOwn, message) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message ${isOwn ? 'own' : 'other'}`;
+            msgDiv.innerHTML = `<strong>${isOwn ? 'Вы' : 'Соперник'}:</strong> ${message}`;
+            messagesDiv.appendChild(msgDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
     </script>
 </body>
 </html>
