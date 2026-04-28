@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Крестики-нолики онлайн</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 5px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: #eee;
+            border: 1px solid #ccc;
+            font-size: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+            .cell.X {
+                color: red;
+            }
+
+            .cell.O {
+                color: blue;
+            }
+
+        .chat {
+            width: 300px;
+            margin: 20px auto;
+            border: 1px solid #aaa;
+            padding: 10px;
+        }
+
+        .chat-messages {
+            height: 200px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        input, button {
+            padding: 5px;
+            margin: 3px;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+</head>
+<body>
+    <h1>Крестики-нолики</h1>
+
+    <div>
+        <label>ID комнаты: <input type="text" id="roomIdInput" placeholder="myroom123"></label>
+        <button id="joinBtn">Создать / Войти</button>
+    </div>
+
+    <div id="gameArea" style="display:none;">
+        <div id="status" class="status"></div>
+        <div id="board" class="board"></div>
+        <button id="resetBtn">Сбросить игру</button>
+
+        <div class="chat">
+            <div id="chatMessages" class="chat-messages"></div>
+            <input type="text" id="chatInput" placeholder="Ваше сообщение...">
+            <button id="sendChatBtn">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        let connection;
+        let currentRoomId = "";
+        let playerSymbol = null; 
+        let gameActive = false;
+
+        const joinBtn = document.getElementById("joinBtn");
+        const roomIdInput = document.getElementById("roomIdInput");
+        const gameArea = document.getElementById("gameArea");
+        const statusDiv = document.getElementById("status");
+        const boardDiv = document.getElementById("board");
+        const resetBtn = document.getElementById("resetBtn");
+        const chatInput = document.getElementById("chatInput");
+        const sendChatBtn = document.getElementById("sendChatBtn");
+        const chatMessagesDiv = document.getElementById("chatMessages");
+
+        joinBtn.onclick = async () => {
+            const roomId = roomIdInput.value.trim() || "room_" + Math.floor(Math.random() * 1000);
+            currentRoomId = roomId;
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/gameHub")
+                .build();
+
+            connection.on("GameStarted", (msg) => {
+                gameArea.style.display = "block";
+                statusDiv.innerText = msg;
+                gameActive = true;
+            });
+
+            connection.on("BoardUpdate", (board) => renderBoard(board));
+            connection.on("TurnChanged", (symbol) => {
+                statusDiv.innerText = `Ход игрока: ${symbol}`;
+                playerSymbol = symbol;
+            });
+            connection.on("GameOver", (msg) => {
+                statusDiv.innerText = msg;
+                gameActive = false;
+            });
+            connection.on("GameReset", () => {
+                statusDiv.innerText = "Игра сброшена!";
+                gameActive = true;
+            });
+            connection.on("ReceiveChatMessage", (name, msg) => {
+                const div = document.createElement("div");
+                div.innerText = `${name}: ${msg}`;
+                chatMessagesDiv.appendChild(div);
+                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+            });
+            connection.on("GameError", (err) => alert(err));
+
+            await connection.start();
+            const result = await connection.invoke("JoinRoom", roomId);
+            if (result === "full") alert("Комната полна");
+        };
+
+        function renderBoard(board) {
+            boardDiv.innerHTML = "";
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement("div");
+                cell.className = "cell " + (board[i] !== ' ' ? (board[i] === 'X' ? 'X' : 'O') : "");
+                cell.innerText = board[i];
+                if (gameActive && board[i] === ' ' && connection) {
+                    cell.style.cursor = "pointer";
+                    cell.onclick = () => {
+                        if (playerSymbol)
+                            connection.invoke("MakeMove", currentRoomId, i, playerSymbol);
+                    };
+                }
+                boardDiv.appendChild(cell);
+            }
+        }
+
+        resetBtn.onclick = () => {
+            if (connection) connection.invoke("ResetGame", currentRoomId);
+        };
+
+        sendChatBtn.onclick = () => {
+            const msg = chatInput.value.trim();
+            if (msg && connection) {
+                connection.invoke("SendChatMessage", currentRoomId, "Игрок", msg);
+                chatInput.value = "";
+            }
+        };
+    </script>
+</body>
+</html>
