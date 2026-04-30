@@ -2,322 +2,341 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Крестики-нолики онлайн</title>
+    <title>Крестики-нолики</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-top: 0;
-        }
-
-        .join-panel {
+            font-family: Arial;
             text-align: center;
             padding: 20px;
-            background: #f5f5f5;
-            border-radius: 10px;
-        }
-
-            .join-panel input {
-                padding: 10px;
-                font-size: 16px;
-                width: 200px;
-                margin: 10px;
-                border: 2px solid #ddd;
-                border-radius: 5px;
-            }
-
-            .join-panel button {
-                padding: 10px 20px;
-                font-size: 16px;
-                background: #667eea;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            }
-
-                .join-panel button:hover {
-                    background: #5a67d8;
-                }
-
-        .game-area {
-            display: none;
-        }
-
-        .status {
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 10px;
-            background: #f0f0f0;
         }
 
         .board {
             display: grid;
             grid-template-columns: repeat(3, 100px);
-            gap: 10px;
+            gap: 5px;
             justify-content: center;
-            margin: 20px 0;
+            margin: 20px auto;
         }
 
         .cell {
             width: 100px;
             height: 100px;
-            background: #f8f9fa;
-            border: 3px solid #dee2e6;
-            border-radius: 10px;
+            border: 2px solid #333;
+            font-size: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
-            font-weight: bold;
+            background: #f9f9f9;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
-            .cell:hover:not(.disabled) {
-                background: #e9ecef;
-                transform: scale(1.02);
-            }
-
             .cell.X {
-                color: #dc3545;
+                color: red;
             }
 
             .cell.O {
-                color: #28a745;
+                color: blue;
             }
 
-            .cell.disabled {
-                cursor: not-allowed;
-                opacity: 0.7;
-            }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-            button:hover {
-                background: #0056b3;
+            .cell:hover {
+                background: #e0e0e0;
             }
 
         .chat {
-            margin-top: 20px;
-            border-top: 2px solid #dee2e6;
-            padding-top: 20px;
+            width: 300px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
         }
 
-        .chat-messages {
+        .messages {
             height: 200px;
             overflow-y: auto;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 10px;
+            border: 1px solid #ccc;
             margin-bottom: 10px;
-            background: #f8f9fa;
+            padding: 5px;
+            text-align: left;
         }
 
-        .chat-message {
-            padding: 5px;
+        .message {
             margin: 5px 0;
+            padding: 5px;
+        }
+
+            .message.X {
+                background: #ffe0e0;
+            }
+
+            .message.O {
+                background: #e0e0ff;
+            }
+
+            .message.Зритель {
+                background: #f0f0f0;
+                color: #666;
+                font-style: italic;
+            }
+
+        input, button {
+            padding: 5px;
+            margin: 5px;
+        }
+
+        .status {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px;
+            padding: 10px;
+            background: #f0f0f0;
             border-radius: 5px;
         }
 
-            .chat-message.own {
-                background: #d1ecf1;
-                text-align: right;
-            }
-
-            .chat-message.other {
-                background: #e2e3e5;
-                text-align: left;
-            }
-
-        .chat-input-area {
-            display: flex;
-            gap: 10px;
-        }
-
-            .chat-input-area input {
-                flex: 1;
-                padding: 10px;
-                border: 1px solid #dee2e6;
-                border-radius: 5px;
-            }
-
-        .info {
-            text-align: center;
+        .players {
+            font-size: 16px;
             color: #666;
-            margin: 10px 0;
+            margin: 10px;
         }
+
+        .debug {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: black;
+            color: lime;
+            font-size: 12px;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            text-align: left;
+            z-index: 999;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .spectator-badge {
+            background: #ff9800;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .reset-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+            .reset-button:hover {
+                background: #0056b3;
+            }
+
+            .reset-button.disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>🎮 Крестики-нолики</h1>
+    <h1>Крестики-нолики</h1>
 
-        <div id="joinPanel" class="join-panel">
-            <h3>Войти в игру</h3>
-            <input type="text" id="roomId" placeholder="ID комнаты" value="game123">
-            <button onclick="joinGame()">🎯 Присоединиться</button>
-            <div class="info">Введите одинаковый ID комнаты с другом</div>
-        </div>
+    <div id="joinPanel">
+        <input type="text" id="roomId" placeholder="ID комнаты" value="game123">
+        <button onclick="joinGame()">Войти</button>
+        <p>Введите одинаковый ID с другом</p>
+        <div id="joinError" class="error-message"></div>
+    </div>
 
-        <div id="gameArea" class="game-area">
-            <div id="status" class="status">⏳ Ожидание игроков...</div>
-            <div id="board" class="board"></div>
-            <div style="text-align: center;">
-                <button onclick="resetGame()">🔄 Сбросить игру</button>
-            </div>
+    <div id="gamePanel" style="display:none;">
+        <div id="spectatorBadge" style="display:none;" class="spectator-badge">👁️ Режим наблюдателя</div>
+        <div class="players" id="playersInfo"></div>
+        <div class="status" id="status"></div>
+        <div id="board" class="board"></div>
+        <button id="resetButton" class="reset-button" onclick="resetGame()">Сбросить игру</button>
 
-            <div class="chat">
-                <h3>💬 Чат</h3>
-                <div id="chatMessages" class="chat-messages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Ваше сообщение..." onkeypress="if(event.key==='Enter') sendChat()">
-                    <button onclick="sendChat()">📨 Отправить</button>
-                </div>
-            </div>
+        <div class="chat">
+            <h3>Чат</h3>
+            <div id="messages" class="messages"></div>
+            <input type="text" id="messageInput" placeholder="Сообщение...">
+            <button onclick="sendMessage()">Отправить</button>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <div class="debug" id="debug"></div>
+
     <script>
         let connection = null;
-        let currentRoomId = null;
-        let mySymbol = null;
-        let myConnectionId = null;
+        let currentRoom = "";
+        let mySymbol = "";
         let myTurn = false;
-        let gameActive = false;
-        let boardData = Array(9).fill(' ');
+        let isSpectator = false;
+
+        function debugLog(msg) {
+            const debugDiv = document.getElementById("debug");
+            const time = new Date().toLocaleTimeString();
+            debugDiv.innerHTML += `<div>[${time}] ${msg}</div>`;
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+            console.log(msg);
+        }
 
         async function joinGame() {
-            const roomId = document.getElementById('roomId').value.trim();
-            if (!roomId) {
-                alert('Введите ID комнаты');
+            currentRoom = document.getElementById("roomId").value;
+            if (!currentRoom) {
+                alert("Введите ID комнаты");
                 return;
             }
 
-            currentRoomId = roomId;
-
             connection = new signalR.HubConnectionBuilder()
-                .withUrl('/gameHub')
-                .withAutomaticReconnect()
+                .withUrl("/gameHub")
                 .build();
 
-           
-            connection.on('PlayerJoined', (playerCount) => {
-                document.getElementById('status').innerHTML = `👥 Игроков в комнате: ${playerCount}/2`;
-                if (playerCount === 2) {
-                    document.getElementById('status').innerHTML = '🎉 Игра начинается! 🎉';
+            connection.on("SetSymbol", (symbol) => {
+                mySymbol = symbol;
+                isSpectator = false;
+                debugLog(`Получен символ: ${symbol}`);
+                document.getElementById("status").innerHTML = `Вы играете за ${mySymbol}`;
+                document.getElementById("spectatorBadge").style.display = "none";
+                document.getElementById("resetButton").style.display = "inline-block";
+            });
+
+            connection.on("SetSpectator", () => {
+                isSpectator = true;
+                mySymbol = "";
+                debugLog(`Вы подключены в режиме наблюдателя`);
+                document.getElementById("status").innerHTML = `👁️ Вы наблюдатель. Вы можете смотреть игру и общаться в чате.`;
+                document.getElementById("spectatorBadge").style.display = "inline-block";
+                document.getElementById("resetButton").style.display = "none";
+            });
+
+            connection.on("PlayerCount", (playerCount, spectatorCount) => {
+                debugLog(`Игроков: ${playerCount}/2, Зрителей: ${spectatorCount}`);
+                document.getElementById("playersInfo").innerHTML = `Игроков в комнате: ${playerCount}/2 | Зрителей: ${spectatorCount}`;
+                if (playerCount === 1 && !isSpectator) {
+                    document.getElementById("status").innerHTML = `Вы играете за ${mySymbol}. Ожидание игрока...`;
+                } else if (playerCount === 1 && isSpectator) {
+                    document.getElementById("status").innerHTML = `👁️ Ожидание второго игрока...`;
                 }
             });
 
-            connection.on('GameStart', (symbols) => {
-                gameActive = true;
-                document.getElementById('status').innerHTML = `🎮 Игра началась! Вы играете за ${mySymbol}`;
-            });
-
-            connection.on('BoardUpdate', (board) => {
-                boardData = board;
-                renderBoard();
-            });
-
-            connection.on('SetTurn', (playerId) => {
-                myTurn = (playerId === myConnectionId);
-                if (gameActive) {
-                    const statusText = myTurn ? '✅ Ваш ход!' : '⏳ Ход соперника...';
-                    document.getElementById('status').innerHTML = `${statusText} Вы играете за ${mySymbol}`;
+            connection.on("GameReady", () => {
+                debugLog("Игра готова к запуску!");
+                if (!isSpectator) {
+                    document.getElementById("status").innerHTML = `Игра началась! Вы играете за ${mySymbol}`;
+                } else {
+                    document.getElementById("status").innerHTML = `👁️ Игра началась! Вы наблюдаете за игрой`;
                 }
             });
 
-            connection.on('GameEnd', (message) => {
-                gameActive = false;
+            connection.on("BoardUpdate", (board) => {
+                debugLog(`Получено обновление поля: ${board.join("|")}`);
+                renderBoard(board);
+            });
+
+            connection.on("Turn", (player) => {
+                debugLog(`Событие Turn: ход игрока ${player}, мой символ ${mySymbol}`);
+                if (!isSpectator) {
+                    myTurn = (player === mySymbol);
+                    if (myTurn) {
+                        document.getElementById("status").innerHTML = `✅ ВАШ ХОД! (${mySymbol}) ✅`;
+                        debugLog("Это мой ход!");
+                        if (window.currentBoard) {
+                            renderBoard(window.currentBoard);
+                        }
+                    } else {
+                        document.getElementById("status").innerHTML = `⏳ Ход соперника (${player}) ⏳`;
+                        debugLog("Это не мой ход");
+                    }
+                } else {
+                    document.getElementById("status").innerHTML = `👁️ Ход игрока ${player}`;
+                }
+            });
+
+            connection.on("TurnChanged", (player) => {
+                debugLog(`TurnChanged: теперь ходит ${player}`);
+            });
+
+            connection.on("GameEnd", (message) => {
+                debugLog(`Игра окончена: ${message}`);
+                document.getElementById("status").innerHTML = message;
                 myTurn = false;
-                document.getElementById('status').innerHTML = `🏆 ${message} 🏆`;
             });
 
-            connection.on('GameReset', () => {
-                gameActive = true;
-                document.getElementById('status').innerHTML = `🔄 Игра сброшена! Вы играете за ${mySymbol}`;
+            connection.on("GameReset", () => {
+                debugLog("Игра сброшена");
+                if (!isSpectator) {
+                    document.getElementById("status").innerHTML = `Игра сброшена! Вы играете за ${mySymbol}`;
+                } else {
+                    document.getElementById("status").innerHTML = `👁️ Игра сброшена!`;
+                }
             });
 
-            connection.on('NewMessage', (connectionId, message) => {
-                addChatMessage(connectionId === myConnectionId, message);
+            connection.on("NewMessage", (playerName, message) => {
+                debugLog(`Сообщение от ${playerName}: ${message}`);
+                let messagesDiv = document.getElementById("messages");
+                let msgDiv = document.createElement("div");
+                msgDiv.className = `message ${playerName}`;
+                msgDiv.innerHTML = `<strong>${playerName}:</strong> ${message}`;
+                messagesDiv.appendChild(msgDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
 
-            connection.onclose(() => {
-                alert('Соединение потеряно');
-                document.getElementById('joinPanel').style.display = 'block';
-                document.getElementById('gameArea').style.display = 'none';
+            connection.on("Error", (error) => {
+                debugLog(`ОШИБКА: ${error}`);
+                document.getElementById("joinError").innerHTML = error;
+                setTimeout(() => {
+                    document.getElementById("joinError").innerHTML = "";
+                }, 3000);
+                alert(error);
             });
 
             try {
                 await connection.start();
-                myConnectionId = connection.connectionId;
+                debugLog(`Подключено! ID: ${connection.connectionId}`);
+                await connection.invoke("JoinRoom", currentRoom);
 
-                const result = await connection.invoke('JoinRoom', roomId);
-
-                if (result && !result.success) {
-                    alert(result.error);
-                    return;
-                }
-
-                mySymbol = result.symbol;
-                document.getElementById('joinPanel').style.display = 'none';
-                document.getElementById('gameArea').style.display = 'block';
-                document.getElementById('status').innerHTML = `🟢 Подключено! Вы играете за ${mySymbol}. Ожидаем соперника...`;
-
+                document.getElementById("joinPanel").style.display = "none";
+                document.getElementById("gamePanel").style.display = "block";
+                document.getElementById("joinError").innerHTML = "";
             } catch (err) {
-                console.error(err);
-                alert('Ошибка подключения: ' + err);
+                debugLog(`Ошибка подключения: ${err}`);
+                alert("Ошибка подключения: " + err);
             }
         }
 
-        function renderBoard() {
-            const boardDiv = document.getElementById('board');
-            boardDiv.innerHTML = '';
+        let currentBoard = [];
+
+        function renderBoard(board) {
+            currentBoard = board;
+            let boardDiv = document.getElementById("board");
+            boardDiv.innerHTML = "";
 
             for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                cell.className = `cell ${boardData[i] !== ' ' ? boardData[i] : ''}`;
-                cell.textContent = boardData[i] !== ' ' ? boardData[i] : '';
+                let cell = document.createElement("div");
+                cell.className = "cell " + board[i];
+                cell.innerHTML = board[i];
 
-                if (gameActive && myTurn && boardData[i] === ' ') {
-                    cell.style.cursor = 'pointer';
+                if (!isSpectator && board[i] === "") {
                     cell.onclick = () => makeMove(i);
+                    cell.style.cursor = "pointer";
+                    cell.style.background = "#90EE90";
+                } else if (isSpectator) {
+                    cell.style.cursor = "not-allowed";
+                    cell.style.opacity = "0.8";
                 } else {
-                    cell.classList.add('disabled');
+                    cell.style.background = "#f9f9f9";
                 }
 
                 boardDiv.appendChild(cell);
@@ -325,38 +344,43 @@
         }
 
         async function makeMove(position) {
-            if (!gameActive || !myTurn) return;
-
-            try {
-                await connection.invoke('MakeMove', currentRoomId, position);
-            } catch (err) {
-                console.error('Move error:', err);
+            if (isSpectator) {
+                debugLog("Наблюдатели не могут ходить!");
+                return;
             }
+
+            debugLog(`Попытка хода в позицию ${position}, myTurn=${myTurn}`);
+            if (!myTurn) {
+                debugLog("Ход невозможен - не мой ход!");
+                return;
+            }
+            if (!currentBoard || currentBoard[position] !== "") {
+                debugLog("Ход невозможен - клетка уже занята!");
+                return;
+            }
+            await connection.invoke("MakeMove", currentRoom, position);
+            debugLog(`Ход отправлен на сервер`);
         }
 
         async function resetGame() {
-            if (connection) {
-                await connection.invoke('ResetGame', currentRoomId);
+            if (isSpectator) {
+                debugLog("Наблюдатели не могут сбросить игру!");
+                alert("Только игроки могут сбросить игру!");
+                return;
             }
+
+            debugLog("Выполняется сброс игры");
+            await connection.invoke("ResetGame", currentRoom);
         }
 
-        async function sendChat() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-
-            if (message && connection) {
-                await connection.invoke('SendChat', currentRoomId, message);
-                input.value = '';
+        async function sendMessage() {
+            let input = document.getElementById("messageInput");
+            let message = input.value;
+            if (message) {
+                debugLog(`Отправка сообщения: ${message}`);
+                await connection.invoke("SendMessage", currentRoom, message);
+                input.value = "";
             }
-        }
-
-        function addChatMessage(isOwn, message) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `chat-message ${isOwn ? 'own' : 'other'}`;
-            msgDiv.innerHTML = `<strong>${isOwn ? 'Вы' : 'Соперник'}:</strong> ${message}`;
-            messagesDiv.appendChild(msgDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
     </script>
 </body>
